@@ -2,7 +2,7 @@
 (
 set -eu
 declare -r tmp='./regrpccli'
-declare -r addr="${addr:-:: 49501}"
+declare -r addr="${addr:-:: 3031}"
 if [ "${1:-}" == 'cli' ]; then
 	declare -r svr=rpctestsvr
 	declare -r cli=rpctestcli
