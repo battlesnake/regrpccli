@@ -38,14 +38,7 @@ static void show_help(const char *name)
 static uint32_t next_seq()
 {
 	static uint32_t _seq = 0;
-	_seq++;
-	uint32_t seq = 0;
-	/* Bit-reverse sequence number, to keep the request-tracking tree balanced */
-	/* OK, we aren't tracking requests any more but keep the bit reversal anyway */
-	for (uint32_t x = _seq; x; x >>= 1) {
-		seq = seq >> 1 | ((x & 1) << 31);
-	}
-	return seq;
+	return ++_seq;
 }
 
 static char delim = '\n';
@@ -78,17 +71,18 @@ static void *rx_thread(void *arg)
 		}
 		fstr_format_append(&msg, "[%s]%c", type, delim);
 		struct keystore ks;
-		keystore_init_from(&ks, 1024, fstr_get(&msg), fstr_len(&msg));
+		keystore_init_from(&ks, 1024, p->data, p->length);
 		struct keystore_iterator it;
 		struct fstr key;
 		struct fstr val;
 		keystore_iterator_init(&it, &ks);
-		while (keystore_iterator_next_key_f(&it, &key) && keystore_iterator_next_value_f(&it, &val)) {
+		while (keystore_iterator_next_pair_f(&it, &key, &val)) {
 			fstr_format_append(&msg, PRIfs "%c" PRIfs "%c", prifs(&key), KV_DELIM, prifs(&val), delim);
 		}
 		keystore_iterator_destroy(&it);
 		keystore_destroy(&ks);
 		fstr_format_append(&msg, "%s%c", RECV_END, delim);
+		printf(PRIfs, prifs(&msg));
 		fstr_destroy(&msg);
 		free(p);
 	}
