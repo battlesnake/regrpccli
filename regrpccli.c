@@ -161,7 +161,7 @@ int main(int argc, char *argv[])
 				break;
 			}
 			char *eq = memchr(fstr_get(&kv), KV_DELIM, fstr_len(&kv));
-			if (*eq != KV_DELIM) {
+			if (!eq || *eq != KV_DELIM) {
 				log_error("Could not find key/value separator '%c' in line <" PRIfs ">", KV_DELIM, prifs(&kv));
 				if (!interactive) {
 					quit = true;
