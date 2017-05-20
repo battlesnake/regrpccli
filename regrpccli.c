@@ -4,6 +4,7 @@ set -eu
 declare -r tmp='./regrpccli'
 declare -r addr="${addr:-:: 3031}"
 if [ "${1:-}" == 'cli' ]; then
+	sleep 1
 	declare -r svr=rpctestsvr
 	declare -r cli=rpctestcli
 	printf "%s\n" "$svr" "Key=Value" "Melon=Lemon" "ABORT" "$svr" "Command=nonsense" "Potato=Tomato" "SEND" "QUIT" | \
@@ -12,6 +13,7 @@ if [ "${1:-}" == 'cli' ]; then
 	) || read line
 else
 	gcc -DREGRPCCLI -Wall -Wextra -Werror -Ic_modules -DSIMPLE_LOGGING -O2 -g -std=gnu11 -o "$tmp" $(find -name '*.c') -lpthread
+	(cd c_modules/relay && npm install)
 	tmux split-window -dv bash "$0" cli
 	node c_modules/relay/server.js
 fi
@@ -56,7 +58,7 @@ static void *rx_thread(void *arg)
 {
 	(void) arg;
 	struct relay_packet *p;
-	while ((p = relay_client_recv_packet(&client))) {
+	while (relay_client_recv_packet(&client, &p)) {
 		struct fstr msg = FSTR_INIT;
 		fstr_format_append(&msg, "%s%c", p->remote, delim);
 		const char *type;
